@@ -1,0 +1,8 @@
+---
+- name: Introduction to playbooks
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Checking connection via ping
+      ping:
