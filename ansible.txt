@@ -1,0 +1,8 @@
+ec2-user@52.87.157.189 | CHANGED | rc=0 >>
+              total        used        free      shared  buff/cache   available
+Mem:            952         218          61           0         673         600
+Swap:             0           0           0
+ec2-user@54.204.194.10 | CHANGED | rc=0 >>
+              total        used        free      shared  buff/cache   available
+Mem:            952         237          79           0         635         574
+Swap:             0           0           0
