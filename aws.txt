@@ -1,7 +1,6 @@
 ansible-user
 
-aws_access_keys = AKIA4DMVQH6CSOZIUNOD
-aws_scret_access_keys = gfkvCThL4WdBgwlg5vn8unZBYcgUShE2rZt0dTGw
+
 
 commands: (use after every restart)
 
