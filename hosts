@@ -1,2 +1,8 @@
+<<<<<<< HEAD
 [local]
 localhost ansible_connection=local
+=======
+[all]
+ec2-user@54.204.194.10
+ec2-user@52.87.157.189
+>>>>>>> a0ad5b18c0e8eb75706edc79b520871e2f77e693
