@@ -1,0 +1,17 @@
+ansible-user
+
+
+
+commands: (use after every restart)
+
+
+export AWS_ACCESS_KEY_ID='AKIA4DMVQH6CSOZIUNOD'
+export AWS_SECRET_ACCESS_KEY='gfkvCThL4WdBgwlg5vn8unZBYcgUShE2rZt0dTGw'
+
+
+Commands for dynamic playbook
+ ansible-playbook -i demo.aws_ec2.yml playbook-sample/ansible_debug_139.yml -vv
+
+
+commands for static playbook execution
+ ansible-playbook playbook-sample/ansible_debug_139.yml
