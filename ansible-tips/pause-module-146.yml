@@ -1,0 +1,71 @@
+---
+- name: Example playbook for pausing for manual maintenance
+  hosts: all
+  gather_facts: no
+  tags: scenario1
+  tasks:
+    - name: Notify about maintenance
+      debug:
+        msg: "Maintenance window started. Please perform the required checks."
+
+    - name: Pause for manual maintenance
+      pause:
+        prompt: "Press Enter to continue after maintenance is completed..."
+
+    - name: Resume operation after maintenance
+      shell: echo "Maintenance completed. Resuming operation."
+
+- name: Install and start Apache HTTP server on Ubuntu
+  hosts: all
+  become: true
+  tags: scenario2
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install Apache HTTP server
+      apt:
+        name: apache2
+        state: present
+
+    - name: Start and enable Apache service
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Pause for 30 seconds after starting service
+      pause:
+        seconds: 30
+
+    - name: Check Apache service status
+      ansible.builtin.service_facts:
+
+    - name: Print Apache service status
+      debug:
+        var: ansible_facts.services['apache2.service'].state
+
+- name: Ansible pause module parameters demo
+  hosts: all
+  gather_facts: no
+  tags: scenario3
+  tasks:
+    - name: Pause for 30 seconds
+      pause:
+        seconds: 30
+
+    - name: Prompt after verifying backup
+      pause:
+        prompt: "Press Enter to continue after verifying backup..."
+
+    - name: Pause for username input (echo on)
+      pause:
+        prompt: "Enter your username:"
+        echo: yes
+
+    - name: Pause for password input (echo off)
+      pause:
+        prompt: "Enter your password:"
+        echo: no
+
