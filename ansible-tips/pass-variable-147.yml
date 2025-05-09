@@ -1,0 +1,16 @@
+---
+#3 ways to call it 
+#ansible-playbook playbook.yml -e "var1=value1 var2=value2"
+#ansible-playbook playbook.yml -e '{"users": ["alice", "bob"], "debug": true}'
+#ansible-playbook playbook.yml -e "@vars.yml"
+
+#ansible-playbook -i demo.aws-ec2.yml ansible-tips/pass-variable-147.yml -u ec2-user --extra-vars "var1=custom1 var2=custom_value2"
+- name: Pass Variable to Playbook from Command Line
+  hosts: all
+  vars:
+    var1: value_1
+    var2: value_2
+  tasks:
+    - name: Print variables
+      debug:
+        msg: "var1={{ var1 }} var2={{ var2 }}"
