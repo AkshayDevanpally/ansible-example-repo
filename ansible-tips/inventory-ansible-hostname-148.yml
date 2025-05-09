@@ -1,6 +1,7 @@
+#!/root/ansible/myansible/bin/ansible-tips
 ---
 - name: Example playbook to demonstrate ansible_hostname vs inventory_hostname
-  hosts: webservers
+  hosts: local
   gather_facts: yes
 
   tasks:

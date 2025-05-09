@@ -1,0 +1,43 @@
+#!/root/ansible/myansible/bin/ansible-tips
+- name: Demo of environment variable levels
+  hosts: local
+  gather_facts: false
+
+  vars:
+    HOST_LEVEL_VAR: "hello_from_inventory"
+
+  environment:  # Play-level environment variable
+    PLAY_LEVEL_VAR: "hello_from_play"
+
+  tasks:
+
+    - name: Task-level environment variable demo
+      shell: "env | grep TASK_LEVEL_VAR"
+      register: task_level_env
+      environment:  # Task-level overrides everything
+        TASK_LEVEL_VAR: "hello_from_task"
+
+    - name: Show task-level environment variable
+      debug:
+        msg: "Task-level VAR: {{ task_level_env.stdout }}"
+
+    - name: Play-level environment variable demo
+      shell: "env | grep PLAY_LEVEL_VAR"
+      register: play_level_env
+
+    - name: Show play-level environment variable
+      debug:
+        msg: "Play-level VAR: {{ play_level_env.stdout }}"
+
+    - name: Host-level environment variable demo
+      shell: "env | grep HOST_LEVEL_VAR"
+      register: host_level_env
+      environment:
+        HOST_LEVEL_VAR: "{{ HOST_LEVEL_VAR }}"  # Passed explicitly from vars
+
+    - name: Show host-level environment variable
+      debug:
+        msg: "Host-level VAR: {{ host_level_env.stdout }}"
+
+
+## this shows cases the 3 types of environment variables, play , tasks and host level
