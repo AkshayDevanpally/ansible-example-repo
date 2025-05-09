@@ -1,4 +1,6 @@
 ---
+#this is regarding pause and tags modules in ansible
+#command to execute: ansible-playbook -i demo.aws-ec2.yml ansible-tips/pause-mdoulde-146.yml -u ec2-user --tags scenario1
 - name: Example playbook for pausing for manual maintenance
   hosts: all
   gather_facts: no
