@@ -1,4 +1,6 @@
 #!/root/ansible/myansible/bin/ansible-tips
+#this is used to execute tasks on local host or forward he tasks to be executed on on localhost
+#delegate_to and local_action are the keyword used here
 - hosts: local
   tasks:
     - name: Run a command on the local machine
