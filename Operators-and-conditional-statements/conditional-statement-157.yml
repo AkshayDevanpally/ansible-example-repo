@@ -1,0 +1,27 @@
+#!/root/ansible/myansible/bin/Operators-and-conditional-statements
+# "when" keyword id used
+- name: This is for Conditional Statement
+  hosts: local
+  gather_facts: false
+
+  vars:
+    x : 20
+    y : 10
+
+  tasks:
+    - name: Operation for Conditional Statement
+      debug: 
+        msg:
+          - "Value of x : {{ x }}, Value of y: {{ y }}"      
+
+    - name: Operation for Conditional Statement I
+      debug: 
+        msg:
+          - "x is Small of y"
+      when: x < y
+
+    - name: Operation for Conditional Statement II
+      debug: 
+        msg:
+          - "x is not Small then y"
+      when: x > y
