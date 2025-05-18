@@ -1,0 +1,45 @@
+---
+
+- name: Example playbook using Ansible vault
+  hosts: local
+
+
+- name: Example playbook Without Ansible Vault
+  hosts: local
+  vars:
+    db_username: 'admin'
+    db_password: 'supersecretpassword'
+  tasks:
+    - name: Print the database username and password
+      debug:
+        msg: "Database Username: {{ db_username }}, Password: {{ db_password }}"
+
+#encrypting db_username and db_password
+#commands
+# ansible-vault encrypt_string 'admin' --name 'db_username' --vault-password-file /home/akshay/ansible/encryption-decryption/amsible_valt_password
+# ansible-vault encrypt_string 'supersecretpassword' --name 'db_password' --vault-password-file /home/akshay/ansible/encryption-decryption/amsible_valt_password
+# Execution command
+# ansible-playbook encryption-decryption/encrypt-decrypt-161.yml --vault-password-file /home/akshay/ansible/encryption-decryption/amsible_valt_password
+
+
+- name: Example playbook Without Ansible Vault
+  hosts: local
+  vars:
+    db_username: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36383238333966313762363933333666333937316265333133346433633333383666643632303839
+          6135326637396666663062386662666238636635633136350a623037343533306664333332393631
+          31326561353734653431653238663662326465646233313363643230363566323935326538343731
+          3233303966656233310a663763656535663636323437623932303832373361643030356232656363
+          3433
+    db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37306430636637363136326433366162356636653864386337333263626630653239323533356533
+          6436393261346634343265336631626539656133306539300a323338353934323236626461393834
+          63343066643638643539376365393734333138393035373164623339313033326633356664646431
+          6661663238343637340a303335326433376163643965316464376564393037316262313830663936
+          35323563356435653839383134633539383236306332653531383337383735373634
+  tasks:
+    - name: Print the database username and password
+      debug:
+        msg: "Database Username: {{ db_username }}, Password: {{ db_password }}"

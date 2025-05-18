@@ -1,0 +1,20 @@
+---
+#execution command
+#ansible-playbook encryption-decryption/multi-variable-encryption-using-file-162.yml
+
+- name: Example playbook using Ansible vault
+  hosts: local
+  vars_files:
+    - secret.yml
+  vars:
+    app_name: "MyApp"
+    app_version: "1.0.0"
+  tasks:
+    - name: Print the application name and version
+      debug:
+        msg: "Application Name: {{ app_name }}, Version: {{ app_version }}"
+
+    - name: Print the database username and password
+      debug:
+        msg: "Database Username: {{ db_username }}, Password: {{ db_password }}"
+      no_log: true
