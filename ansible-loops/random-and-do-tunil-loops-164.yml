@@ -1,0 +1,47 @@
+- name: Loops in Ansible Playbook Part II  # Name of the playbook
+  hosts: all                                # Run on all inventory hosts
+  remote_user: ec2-user                     # SSH as ec2-user
+  become: 'yes'                             # Use privilege escalation
+  become_user: root                         # Run tasks as root user
+
+  vars:
+    alpha: [ 'a', 'b', 'c', 'd' ]           # A list of letters
+    numbers:  [ 1, 2, 3, 4 ]                # A list of numbers
+
+  tasks:
+    # -----------------------------
+    # Task 1: Randomly select one option from a list
+    # -----------------------------
+    - name : Random Looping Example
+      debug:
+        msg: "{{ item }}"                   # Display a randomly selected string
+      with_random_choice:
+        - "go through the door"
+        - "drink from the goblet"
+        - "press the red button"
+        - "do nothing"
+        # Randomly selects one item from the list each time the task runs
+
+    # -----------------------------
+    # Task 2: Looping over a list with index
+    # -----------------------------
+    - name: Looping over a List
+      debug:
+        msg: "At array position {{ item.0 }} there is a value {{ item.1 }}"
+        # item.0 = index, item.1 = value from the list
+      with_indexed_items:
+        - "{{ alpha }}"
+        # Iterates over the list `alpha` and includes the index for each item
+
+    # -----------------------------
+    # Task 3: Retry a task until a condition is met
+    # -----------------------------
+    - name: Ensure Apache is Running
+      service:
+        name: httpd                         # Manage Apache service
+        state: started                      # Ensure it is running
+      register: result                      # Store the result of the task
+      until: result.changed == True         # Repeat until the service starts
+      retries: 10                           # Try up to 10 times
+      delay: 4                              # Wait 4 seconds between retries
+

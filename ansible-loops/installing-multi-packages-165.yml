@@ -1,0 +1,51 @@
+- name: Loops in Ansible Playbook Part III   # Playbook title for clarity
+  hosts: all                                  # Apply to all hosts in inventory
+  remote_user: ec2-user                       # SSH into hosts as ec2-user
+  become: 'yes'                               # Use privilege escalation
+  become_user: root                           # Run commands as root
+
+  vars:
+    packages: [ 'gettext-devel', 'openssl-devel', 'perl-CPAN', 'perl-devel', 'zlib-devel', 'unzip', 'curl', 'wget' ]
+    # Define a list of package names used in multiple tasks
+
+  tasks:
+    # ----------------------------------------------------
+    # Task 1: Install multiple packages using a modern loop
+    # ----------------------------------------------------
+    - name: Install Multiple Packages using Loop
+      yum:
+        name: '{{ item }}'                    # Install each item in the loop
+        state: present                        # Ensure it's installed
+      loop:
+        - gettext-devel
+        - openssl-devel
+        - perl-CPAN
+        - perl-devel
+        - zlib-devel
+        - unzip
+        - curl
+        - wget
+        # Modern loop syntax using `loop:` instead of `with_items`
+
+    # ----------------------------------------------------
+    # Task 2: Uninstall multiple packages using indexed loop
+    # ----------------------------------------------------
+    - name: UnInstall Multiple Packages using Index Loop
+      yum:
+        name: '{{ item.1 }}'                  # item.1 = package name; item.0 = index (not used here)
+        state: absent                         # Remove the package
+      with_indexed_items:
+        - "{{ packages }}"                    # Loop through the `packages` list with index
+
+    # ----------------------------------------------------
+    # Task 3: Install packages using `with_together` loop
+    # ----------------------------------------------------
+    - name: Install Multiple Packages using Index Loop
+      yum:
+        name: '{{ item.0 }}'                  # item.0 comes from the first list; here it's the only list
+        state: present                        # Ensure the package is installed
+      with_together:
+        - "{{ packages }}"                    # Only one list is supplied, so item.0 is the value
+        # Normally `with_together` is used to pair values from two lists
+        # Here it's used redundantly (better replaced by `loop:` or `with_items`)
+
