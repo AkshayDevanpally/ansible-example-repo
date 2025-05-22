@@ -1,0 +1,48 @@
+---
+- name: Manage Nginx Configuration File           # Playbook name
+  hosts: localhost                                # Run on local machine
+  tasks:
+
+    # Task 1: Add a new block of config text to nginx.conf
+    - name: Add a new block of text after a marker
+      blockinfile:
+        path: /etc/nginx/nginx.conf               # File to be modified
+        marker: "# START OF NEW BLOCK"            # Unique marker used to wrap the block
+        block: |                                  # The block of text to insert
+          # New block of text
+          location /api {
+              proxy_pass http://backend_servers;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          }
+      register: block_result                      # Save the result in a variable for later use
+
+    # Task 2: Print the result of the block insertion
+    - name: Print the blockinfile result
+      debug:
+        var: block_result                         # Output the result to verify what changed
+
+    # Task 3: Conditionally update the existing block if the marker was found/changed
+    - name: Replace a block of text between markers
+      blockinfile:
+        path: /etc/nginx/nginx.conf
+        marker: "# START OF NEW BLOCK"            # The same marker is used to find the block
+        block: |                                  # The updated content to replace the block
+          # Updated block of text
+          location /api {
+              proxy_pass http://new_backend_servers;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          }
+      when: "'# START OF NEW BLOCK' in block_result.changed"   # Run this only if block was added/changed before
+
+    # Task 4: Conditionally remove the block between markers
+    - name: Remove a block of text between markers
+      blockinfile:
+        path: /etc/nginx/nginx.conf
+        marker: "# START OF NEW BLOCK"            # Locate the block by its marker
+        state: absent                              # Remove the block
+      when: "'# START OF NEW BLOCK' in block_result.changed"   # Only remove if it was added/changed earlier
+
