@@ -135,53 +135,27 @@ Prints **"Debug Message 6"** — Executes by default unless filtering with tags.
 ### 🔸 Run All Tasks (Default)
 
 ```bash
-ansible-playbook playbook.yml
+ansible-playbook tags/tags-16.yml
 ```
 
 ### 🔹 Run Only Tasks with the `first` Tag
 
 ```bash
-ansible-playbook playbook.yml --tags first
+ansible-playbook tags/tags-16.yml --tags first
 ```
 
 ### 🔹 Run Tasks with Tag `Common`
 
 ```bash
-ansible-playbook playbook.yml --tags Common
+ansible-playbook tags/tags-16.yml --tags Common
 ```
 
 ### 🔹 Skip Tasks with Tag `Second`
 
 ```bash
-ansible-playbook playbook.yml --skip-tags Second
+ansible-playbook tags/tags-16.yml --skip-tags Second
 ```
 
 ---
 
-## 📚 What You Learned
 
-- How to define and apply **tags** in Ansible
-- How to control which tasks run using `--tags` or `--skip-tags`
-- How debug messages help verify task execution
-
----
-
-## 📎 Bonus Tip
-
-You can list all available tags in a playbook using:
-
-```bash
-ansible-playbook playbook.yml --list-tags
-```
-
----
-
-## 🧩 Challenge
-
-Try adding your own task with a unique tag (e.g., `- mytag`) and test running it with:
-
-```bash
-ansible-playbook playbook.yml --tags mytag
-```
-
-Happy Automating! ⚙️🐧
