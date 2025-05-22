@@ -1,0 +1,43 @@
+---
+# First Play: Gather and display OS family information
+- name: Gather and display OS family
+  hosts: all                                # Run this play on all hosts in inventory
+  gather_facts: yes                         # Collect system facts like OS, memory, etc.
+  tasks:
+    - name: Display the OS family
+      debug:
+        msg: "The OS family is {{ ansible_os_family }}"  # Show the OS family (e.g., Debian, RedHat)
+
+# Second Play: Perform updates and reboot on Debian-based systems
+- name: Reboot Servers Example
+  hosts: all                                # Run this play on all hosts
+  become: yes                               # Use elevated privileges (sudo)
+  tasks:
+    - name: Apply updates and reboot
+      block:                                # Use a block to group related tasks
+        # Task 1: Update all packages (only on Debian family)
+        - name: Update all packages
+          apt:                              # Use APT package manager (Debian/Ubuntu)
+            update_cache: yes               # Refresh package list
+            upgrade: dist                   # Perform full upgrade (distribution level)
+          when: ansible_os_family == 'Debian'  # Run only if OS is Debian-family
+
+        # Task 2: Reboot the server after updates
+        - name: Reboot the server
+          reboot:                           # Ansible reboot module
+            msg: "Reboot initiated by Ansible for updates"  # Message to users
+            reboot_timeout: 300             # Max wait time (in seconds) for the reboot to complete
+            post_reboot_delay: 30           # Wait this many seconds after reboot before continuing
+
+        # Task 3: Verify that the server is back up
+        - name: Ensure the server is up and running
+          command: uptime                   # Run `uptime` command to check server status
+          register: uptime_result           # Save the output to a variable
+
+        # Task 4: Print the uptime result
+        - name: Print uptime
+          debug:
+            var: uptime_result.stdout       # Output the `uptime` command result
+
+      when: ansible_os_family == 'Debian'   # Run the whole block only on Debian-based systems
+
