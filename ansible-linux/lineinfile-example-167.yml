@@ -1,0 +1,50 @@
+---
+- name: Manage lines in a text file           # Playbook name
+  hosts: localhost                            # Run this playbook on the local machine
+  tasks:
+
+    # Task 1: Ensure the file sample.conf exists
+    - name: Ensure the file exists
+      file:
+        path: sample.conf                     # File to create or ensure exists
+        state: touch                          # 'touch' creates the file if it doesn't exist
+
+    # Task 2: Add a line after a matching line only if it doesn't already exist
+    - name: Add a line if it doesn't exist
+      lineinfile:
+        path: sample.conf                     # File to edit
+        line: 'timeout 60'                    # Line to ensure is present
+        insertafter: '^port'                  # Insert after a line that matches the regex '^port'
+        state: present                        # Ensure the line is present (idempotent)
+
+    # Task 3: Replace a line that matches a pattern
+    - name: Replace a line if it exists
+      lineinfile:
+        path: sample.conf                     # File to edit
+        regexp: '^ssl_enabled.*'              # Regex to match existing line
+        line: 'ssl_enabled false'             # New line to replace the matched one
+
+    # Task 4: Add a comment at the beginning of the file
+    - name: Add a line at the beginning of the file
+      lineinfile:
+        path: sample.conf                     # File to edit
+        line: '# This is a comment'           # Line to insert
+        insertbefore: BOF                     # Insert Before BOF = Beginning Of File
+
+    # Task 5: Read the file content using cat
+    - name: Read file content using cat
+      command: cat sample.conf                # Shell command to read the file
+      register: file_content                  # Save output into a variable
+
+    # Task 6: Print file content to debug output
+    - name: Print file content
+      debug:
+        msg: "{{ file_content.stdout }}"      # Output the captured file content
+
+    # Task 7: Remove a line matching a pattern
+    - name: Remove a line if it exists
+      lineinfile:
+        path: sample.conf                     # File to edit
+        state: absent                         # Ensure line is absent (remove it)
+        regexp: '^server_name.*'              # Regex to match the line to remove
+
