@@ -1,0 +1,66 @@
+---
+- name: Install and configure Nginx with dynamic server_name
+  hosts: webservers  # This play will run on all hosts in the 'webservers' group
+  become: yes  # Run tasks as root
+
+  vars:
+    # A list of Nginx server configurations using dynamic hostnames and proxy backends
+    nginx_servers:
+      - { server_name: '{{ ansible_hostname }}', port: 80, proxy_pass: 'backend1' }
+      - { server_name: '{{ ansible_hostname }}', port: 80, proxy_pass: 'backend2' }
+      - { server_name: '{{ ansible_hostname }}', port: 80, proxy_pass: 'backend3' }
+      - { server_name: '{{ ansible_hostname }}', port: 80, proxy_pass: 'backend4' }
+
+  tasks:
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx  # Package name to install
+        state: present  # Ensure the package is installed
+      when: ansible_os_family == "Debian"  # Only execute on Debian-based systems
+
+    - name: Create Nginx configuration from template
+      template:
+        src: nginx.conf.j2  # Template file for the Nginx config
+        dest: /etc/nginx/nginx.conf  # Where to place the rendered config
+      notify:
+        - reload nginx  # Notify handler to reload Nginx if config changes
+
+    - name: Ensure Nginx is running and enabled
+      service:
+        name: nginx  # Manage the nginx service
+        state: started  # Ensure it is running
+        enabled: yes  # Ensure it starts on boot
+      when: ansible_os_family == "Debian"  # Conditional for Debian family
+
+  handlers:
+    - name: reload nginx
+      service:
+        name: nginx  # Reload the nginx service (less disruptive than restart)
+        state: reloaded
+      when: ansible_os_family == "Debian"
+
+##########################################################
+# 📝 Playbook Explanation:
+#
+# ➤ This playbook installs and configures Nginx on all 
+#    servers in the 'webservers' inventory group.
+#
+# ➤ It uses a Jinja2 template (`nginx.conf.j2`) to 
+#    generate the main Nginx config file dynamically 
+#    based on the host's name and proxy targets.
+#
+# ➤ It ensures the service is installed, configured, 
+#    started, and set to auto-start on boot.
+#
+# ➤ If the config file changes, a handler is triggered 
+#    to reload the Nginx service (not restart) to apply 
+#    the new settings smoothly.
+#
+# ➤ This setup is meant for Debian-family OSes. You can 
+#    add conditions or tasks for other OS families (like 
+#    RedHat) if needed.
+#
+# ➤ You must provide a valid `nginx.conf.j2` template file 
+#    in your playbook directory or role templates folder.
+##########################################################
+
