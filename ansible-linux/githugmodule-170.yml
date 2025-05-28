@@ -1,0 +1,30 @@
+---
+- name: Clone GitHub repository and perform tasks
+  hosts: all                      # Run this play on all target hosts
+  become: yes                     # Run with elevated privileges (sudo)
+  tasks:
+
+    # Task 1: Make sure Git is installed on the remote machine
+    - name: Ensure Git is installed
+      ansible.builtin.package:    # Use Ansible's package module (works across distros)
+        name: git                 # Package to install
+        state: present            # Ensure the package is present (installed)
+
+    # Task 2: Clone the GitHub repository to the target machine
+    - name: Clone the GitHub repository
+      ansible.builtin.git:        # Use the Git module to clone repositories
+        repo: https://github.com/ansible/ansible-examples.git  # GitHub repository URL
+        dest: /tmp/ansible-examples  # Destination directory on the remote host
+        update: yes               # Pull new changes if the repo already exists
+        version: master           # Branch to checkout
+
+    # Task 3: Read contents of a file from the cloned repository
+    - name: Print the contents of a file from the repository
+      ansible.builtin.shell: cat /tmp/ansible-examples/README.md  # Use shell to read the file
+      register: readme_contents   # Store the output in a variable for use in next step
+
+    # Task 4: Output the file contents to the Ansible console
+    - name: Display the contents of the file
+      debug:
+        msg: "{{ readme_contents.stdout }}"  # Display the content from the previous task
+
