@@ -1,0 +1,31 @@
+---
+# First Play: Generate example logs on remote hosts
+- name: Generate example logs on remote hosts
+  hosts: all                    # Run this play on all hosts
+  tasks:
+
+    # Task 1: Ensure that the /var/log directory exists
+    - name: Create log directory if it doesn't exist
+      file:
+        path: /var/log/         # Directory to create
+        state: directory        # Ensure it's a directory (no changes if already exists)
+
+    # Task 2: Generate a sample log file
+    - name: Generate example log file
+      ansible.builtin.shell: |
+        echo "This is a sample log file." > /var/log/example.log
+        # Create a log file with sample content using shell redirection
+
+---
+# Second Play: Fetch logs from remote hosts to control node
+- name: Fetch example logs from remote hosts
+  hosts: all                    # Again, run on all hosts
+  tasks:
+
+    # Task 3: Copy the remote log file to the control machine
+    - name: Fetch example log file from remote host
+      fetch:
+        src: /var/log/example.log  # Path on the remote host
+        dest: /tmp/logs/           # Destination on the control node (local machine)
+        flat: no                   # Preserve remote directory structure under /tmp/logs/
+
