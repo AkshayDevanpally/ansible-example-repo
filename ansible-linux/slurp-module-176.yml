@@ -1,0 +1,22 @@
+# This playbook fetches the nginx configuration file from remote servers and saves a copy locally.
+
+- name: Fetch configuration file from remote server
+  hosts: all  # Targets the group 'webservers' defined in your inventory
+  tasks:
+    # Task 1: Use the 'slurp' module to fetch the content of the nginx configuration file
+    - name: Fetch nginx configuration
+      ansible.builtin.slurp:
+        src: /etc/nginx/nginx.conf  # Path of the file to fetch on the remote server
+      register: nginx_conf  # Store the result (base64 encoded) in the 'nginx_conf' variable
+
+    # Task 2: Decode and display the file content from the 'nginx_conf' variable
+    - name: Display fetched content
+      debug:
+        msg: "Fetched content: {{ nginx_conf.content | b64decode }}"  # Decode base64 content and print it
+
+    # Task 3: Save the decoded content to a file on the control node (local machine)
+    - name: Save content to a local file
+      copy:
+        content: "{{ nginx_conf.content | b64decode }}"  # Decode the content before saving
+        dest: /tmp/nginx.conf  # Destination path on the local (control) machine
+
