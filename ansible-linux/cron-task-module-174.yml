@@ -1,0 +1,73 @@
+---
+# Playbook: Install and manage Nginx and Apache services
+
+- name: Install and manage Nginx and Apache services
+  hosts: all            # Run these tasks on all hosts in the inventory
+  become: yes           # Run with elevated privileges (sudo)
+  tasks:
+
+    # Task 1: Update the APT package index
+    - name: Update the apt package index
+      apt:
+        update_cache: yes  # Refresh the local package cache to ensure latest info
+
+    # Task 2: Install Nginx web server
+    - name: Install Nginx
+      apt:
+        name: nginx         # Specify the package name
+        state: present      # Ensure it's installed
+
+    # Task 3: Install Apache web server
+    - name: Install Apache
+      apt:
+        name: apache2       # Specify the package name
+        state: present      # Ensure it's installed
+
+    # Task 4: Start and enable the Nginx service
+    - name: Start and enable Nginx service
+      service:
+        name: nginx         # Target service name
+        state: started      # Make sure it is running
+        enabled: yes        # Enable it to start on boot
+
+---
+
+# Playbook: Gather and use service facts
+
+- name: Gather and use service facts
+  hosts: all             # Run on all target hosts
+  tasks:
+
+    # Task 1: Gather systemd service facts
+    - name: Gather service facts
+      service_facts:       # This collects data on all system services
+
+    # Task 2: Print all collected service facts (for inspection/debugging)
+    - name: Print all service facts
+      debug:
+        var: ansible_facts.services
+
+    # Task 3: Ensure Nginx is running if it's not already
+    - name: Ensure Nginx service is running
+      service:
+        name: nginx
+        state: started
+      when: ansible_facts.services['nginx'].state != 'running'  # Only run if Nginx is not already running
+
+    # Task 4: Ensure Apache is stopped if it's not already
+    - name: Ensure Apache service is stopped
+      service:
+        name: apache2
+        state: stopped
+      when: ansible_facts.services['apache2'].state != 'stopped'  # Only run if Apache is not already stopped
+
+    # Task 5: Print Nginx current state
+    - name: Print status of Nginx service
+      debug:
+        msg: "Nginx is {{ ansible_facts.services['nginx'].state }}"  # Show the actual running/stopped status
+
+    # Task 6: Print Apache current state
+    - name: Print status of Apache service
+      debug:
+        msg: "Apache2 is {{ ansible_facts.services['apache2'].state }}"  # Show the actual running/stopped status
+
