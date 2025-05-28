@@ -1,7 +1,7 @@
 # This playbook demonstrates error handling in Ansible using `ignore_errors` and `failed_when`.
 
 - name: Error Handling Part I
-  hosts: all                # Target all hosts in the inventory
+  hosts: localhost         # Target  hosts in the inventory
   remote_user: ec2-user     # Use 'ec2-user' to connect to the instances
   become: 'yes'             # Run tasks with privilege escalation (sudo)
   become_user: root         # Escalate privileges to root user
