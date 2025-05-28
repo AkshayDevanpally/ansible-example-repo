@@ -1,25 +1,35 @@
-#!/root/ansible/myansible/bin/ansible-playbook
+# This playbook demonstrates error handling in Ansible using `ignore_errors` and `failed_when`.
+
 - name: Error Handling Part I
-  hosts: all
-  remote_user: ec2-user
-  become: 'yes'
-  become_user: root
+  hosts: all                # Target all hosts in the inventory
+  remote_user: ec2-user     # Use 'ec2-user' to connect to the instances
+  become: 'yes'             # Run tasks with privilege escalation (sudo)
+  become_user: root         # Escalate privileges to root user
 
   tasks:
+    # Task 1: Try listing contents of a non-existent directory (/etcc/) to simulate an error
     - name: List all files/dirs in /etc location
-      command: "ls /etcc/"
-      register: home_out
-      ignore_errors: yes
-    - debug: var=home_out
+      command: "ls /etcc/"              # Invalid path to simulate an error
+      register: home_out                # Register output in home_out
+      ignore_errors: yes               # Do not fail the playbook if this command fails
 
+    # Task 2: Display the output of the first command
+    - debug: var=home_out               # Print the captured output from /etcc/
+
+    # Task 3: List contents of a valid directory (/tmp)
     - name: List all files/dirs in /tmp location
-      command: "ls /tmp/"
-      register: tmp_out
-    - debug: var=tmp_out
+      command: "ls /tmp/"               # Valid path; should succeed
+      register: tmp_out                 # Register output in tmp_out
 
+    # Task 4: Display the output of the /tmp listing
+    - debug: var=tmp_out                # Print the contents of /tmp
+
+    # Task 5: Repeat the failing command again to demonstrate `failed_when`
     - name: List all files/dirs in /etc location
-      command: "ls /etcc/"
-      register: home1_out
-      ignore_errors: yes
-    - debug: var=home1_out
-      failed_when: home1_out.rc==2
+      command: "ls /etcc/"              # Again use an invalid directory to simulate failure
+      register: home1_out               # Register output in home1_out
+      ignore_errors: yes                # Do not fail even if it errors
+
+    # Task 6: Print output and explicitly fail only if return code is 2 (specific error)
+    - debug: var=home1_out              # Print the result
+      failed_when: home1_out.rc == 2    # Mark this task as failed only if the return code is 2
