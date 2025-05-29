@@ -1,0 +1,37 @@
+# This playbook demonstrates the use of Ansible 'block' to group tasks together,
+# apply common directives (like `become` or `ignore_errors`), and handle errors more gracefully.
+
+- name: Ansible Blocks
+  hosts: all                 # Targets all the hosts in the inventory
+  remote_user: ec2-user      # Uses ec2-user to SSH into the hosts
+
+  tasks:
+    - block:                 # A block groups multiple tasks together
+        # Task 1: List the contents of the /usr directory
+        - name: List usr directory content
+          command: "ls -l /usr/"         # Executes 'ls -l' in the /usr directory
+          register: usr_out              # Saves output into the 'usr_out' variable
+
+        # Task 2: Attempt to list a non-existent /roott directory
+        - name: List root partition content
+          command: "ls -l /roott/"       # Intentionally incorrect path to trigger error
+          register: root_out             # Saves output into the 'root_out' variable
+
+        # Task 3: List the contents of the /bin directory
+        - name: List bin directory content
+          command: "ls -l /bin/"         # Executes 'ls -l' in the /bin directory
+          register: bin_out              # Saves output into 'bin_out'
+
+      become: 'yes'                      # Elevates privileges for all tasks in this block
+      ignore_errors: yes                # Even if one task fails, continue with the rest
+
+    # Task 4: List the contents of the ansible user's home directory
+    - name: List ansible user's home directory content
+      command: "ls -l ~/"                # Lists contents of the home directory of ec2-user
+      register: userhome_out             # Saves output into 'userhome_out'
+
+    # Task 5: Debug outputs for verification
+    - debug: var=usr_out                 # Print result of /usr listing
+    - debug: var=root_out                # Print result of /roott listing (may show error)
+    - debug: var=userhome_out            # Print result of home directory listing
+    # - debug: var=bin_out               # (Optional) Uncomment if you want to see /bin output too
