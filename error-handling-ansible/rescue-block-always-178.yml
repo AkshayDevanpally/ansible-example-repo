@@ -1,0 +1,31 @@
+
+# This playbook demonstrates the use of `block`, `rescue`, and `always` for structured error handling in Ansible.
+# It executes a set of tasks, attempts recovery if an error occurs, and finally runs cleanup or logging logic regardless of success or failure.
+
+- name: Ansible Blocks
+  hosts: all                # Target all hosts in the inventory
+  remote_user: ec2-user     # SSH into remote hosts using ec2-user
+
+  tasks:
+    - block:                # Start of the main block of tasks
+        # Task 1: List the contents of the home directory
+        - name: List home directory content
+          command: ls -l ~/     # Uses shell to list contents of user's home directory
+
+        # Task 2: Simulate failure (you can make this command fail deliberately by altering the path)
+        - name: Failing intentionally
+          command: ls -l /tmp/  # Currently this won't fail unless path is wrong; modify to force failure if needed
+
+      become: 'yes'             # Run tasks in the block as the root user
+      #ignore_errors: yes      # (Commented out) Would let the play continue even on error, but it's not needed here
+
+      rescue:                  # Executes only if any task in the block fails
+        - name: Rescue block (perform recovery)
+          debug:
+            msg: 'Something went wrong, cleaning up..'   # Message indicating fallback action or recovery steps
+
+      always:                  # Executes no matter what — success or failure
+        - name: This will execute always
+          debug:
+            msg: I will execute even in failure scenario   # Always runs for logging, status update, etc.
+
