@@ -1,0 +1,63 @@
+# This playbook demonstrates structured error handling in Ansible using block-rescue-always.
+# It installs and configures the vsftpd FTP server using a Jinja2 template and handles failure during configuration by restoring a backup.
+
+- name: Error Handling Part I
+  hosts: all                      # Run the playbook on all hosts in the inventory
+  remote_user: ec2-user           # SSH into the machine using ec2-user
+  become: 'yes'                   # Execute tasks with elevated (root) privileges
+  become_user: root               # Specifically switch to root user
+
+  vars:
+    anonymous_enable: yes         # Jinja2 variable to control anonymous access
+    local_enable: yes             # Enable local user access
+    write_enable: yes             # Allow writing by users
+    anon_upload_enable: yes       # Allow uploads by anonymous users
+
+  tasks:
+    - block:                      # Begin the main set of tasks that could fail
+        - name: install vsftp
+          yum: 
+            name: vsftpd          # Install the vsftpd package (RedHat-based systems)
+
+        - name: take backup of existing config
+          copy:
+            src: /etc/vsftpd/vsftpd.conf         # Original config file
+            dest: /etc/vsftpd/vsftpd.conf.bkp    # Backup location
+            remote_src: yes                      # Copying a remote file already on the system
+
+        - name: use Jinja2 template to configure vsftpd
+          template:
+            src: vsftpd.j2                       # Jinja2 template file
+            dest: /etc/vsftpd/vsftpd.conf        # Destination for the rendered config file
+
+        - name: View Custom Jinja Template values
+          command: "cat /etc/vsftpd/vsftpd.conf" # Print the rendered config for verification
+          register: jinja_out
+
+        - debug: var=jinja_out                   # Display the output of the previous command
+        
+        - name: This will fail
+          command: "ls -l /tmp/does-not-exist"   # Intentional failure to trigger rescue block
+
+      rescue:                                    # Runs only if any task inside the block fails
+        - name: Recovery block
+          debug:
+            msg: "something failed, restoring vsftpd.conf from backup"
+
+        - name: Restore vsftpd config from backup
+          copy:
+            src: /etc/vsftpd/vsftpd.conf.bkp     # Backup file
+            dest: /etc/vsftpd/vsftpd.conf        # Restore it to original location
+            remote_src: yes
+
+        - name: View restored vsftpd.conf values
+          command: "cat /etc/vsftpd/vsftpd.conf" # Display restored configuration
+          register: conf_out
+
+        - debug: var=conf_out                    # Show the output of restored config
+
+      always:                                    # Executes whether block fails or not
+        - name: Restarting vsftpd
+          service:
+            name: vsftpd                         # Ensure vsftpd is running with the latest config
+            state: restarted
