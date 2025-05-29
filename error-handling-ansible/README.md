@@ -4,14 +4,14 @@ This repository showcases various techniques for error handling in Ansible playb
 
 ## 📁 Repository Structure
 
-* `error_handling_ignore_failed.yml`: Demonstrates the use of `ignore_errors` and `failed_when` directives.
-* `error_handling_block.yml`: Illustrates grouping tasks using `block` and handling errors within the block.
-* `error_handling_block_rescue_always.yml`: Shows structured error handling using `block`, `rescue`, and `always`.
-* `error_handling_vsftpd.yml`: A practical example of configuring the vsftpd service with error handling and rollback mechanisms.
+* `error-handling-177.yml`: Demonstrates the use of `ignore_errors` and `failed_when` directives.
+* `block-module-178.yml`: Illustrates grouping tasks using `block` and handling errors within the block.
+* `rescue-block-always-178.yml`: Shows structured error handling using `block`, `rescue`, and `always`.
+* `demo-block-rescue-179.yml`: A practical example of configuring the vsftpd service with error handling and rollback mechanisms.
 
 ## 📘 Playbook Descriptions
 
-### 1. `error_handling_ignore_failed.yml`
+### 1. `error-handling-177.yml`
 
 This playbook demonstrates:
 
@@ -20,7 +20,7 @@ This playbook demonstrates:
 
 *Use Case*: Useful when certain tasks are non-critical, and their failure shouldn't halt the entire playbook.
 
-### 2. `error_handling_block.yml`
+### 2. `block-module-178.yml`
 
 This playbook illustrates:
 
@@ -29,7 +29,7 @@ This playbook illustrates:
 
 *Use Case*: Ideal for scenarios where multiple related tasks need to be executed, and failure of one shouldn't prevent the others from running.
 
-### 3. `error_handling_block_rescue_always.yml`
+### 3. `rescue-block-always-178.yml`
 
 This playbook showcases structured error handling using:
 
@@ -39,7 +39,7 @@ This playbook showcases structured error handling using:
 
 *Use Case*: Provides a robust mechanism to handle failures gracefully and ensure certain tasks (like cleanup) always run.
 
-### 4. `error_handling_vsftpd.yml`
+### 4. `demo-block-rescue-179.yml`
 
 This playbook is a practical example that:
 
