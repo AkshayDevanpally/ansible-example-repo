@@ -1,0 +1,82 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to perform file management tasks using Ansible.
+# It covers file creation, content writing, permission changes, existence checking,
+# and deletion of files on remote hosts.
+
+# ✅ Key Concepts Covered:
+#   - Creating empty and content-rich files
+#   - Using `copy`, `file`, and `stat` modules
+#   - Managing file permissions
+#   - Conditionally executing tasks using `when`
+#   - File deletion based on existence
+# ===================================================================================
+
+- name: File Management Playbook
+  hosts: webservers  # Replace with your target group of managed hosts
+  gather_facts: false
+
+  tasks:
+    # ✅ Task: Create an empty file using 'touch'
+    - name: Create an Empty File
+      ansible.builtin.file:
+        path: /tmp/empty_file.txt  # Target file path
+        state: touch               # Ensures file is created if not exists
+      register: result_empty_file  # Captures change result
+
+    # ✅ Task: Print debug message only if file was created
+    - debug:
+        msg: "Empty file created successfully"
+      when: result_empty_file.changed
+
+    # ✅ Task: Create a text file with multiple lines of content
+    - name: Create a Text File
+      copy:
+        content: |
+          This is the content
+          of the file.
+          It can span multiple lines.
+        dest: /tmp/text_file.txt    # Destination file path
+      register: result_text_file
+
+    # ✅ Task: Print message if text file creation was successful
+    - debug:
+        msg: "Text file created successfully"
+      when: result_text_file.changed
+
+    # ✅ Task: Check if the file exists using the `stat` module
+    - name: Check if File Exists
+      ansible.builtin.stat:
+        path: /tmp/text_file.txt    # Check for this file
+      register: file_stat
+
+    # ✅ Task: Inform if the file exists
+    - debug:
+        msg: "Text file exists"
+      when: file_stat.stat.exists
+
+    # ✅ Task: Change permissions of the file to 0600 (rw for owner only)
+    - name: Change File Permissions
+      ansible.builtin.file:
+        path: /tmp/text_file.txt
+        mode: '0600'                # Read/write permissions for owner
+      register: result_change_permissions
+
+    # ✅ Task: Confirm if file permissions were changed
+    - debug:
+        msg: "File permissions changed successfully"
+      when: result_change_permissions.changed
+
+    # ✅ Task: Delete the file if it exists
+    - name: Delete File if Exists
+      ansible.builtin.file:
+        path: /tmp/text_file.txt
+        state: absent              # Ensures the file is deleted
+      register: result_delete_file
+
+    # ✅ Task: Confirm deletion
+    - debug:
+        msg: "File deleted successfully"
+      when: result_delete_file.changed
+
