@@ -1,0 +1,81 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to manage directories on remote hosts using Ansible.
+# It includes directory creation, existence check, renaming, permission changes, 
+# and deletion.
+
+# ✅ Key Concepts Covered:
+#   - Directory creation and deletion using the `file` module
+#   - Renaming using `command` with `mv`
+#   - Recursively setting permissions
+#   - Existence check with `stat`
+#   - Conditional debug messages using `when`
+# ===================================================================================
+
+- name: Manage Directory Operations
+  hosts: webservers
+  become: yes  # Ensures tasks are executed with elevated privileges
+  gather_facts: false
+
+  tasks:
+    # ✅ Create a new directory
+    - name: Create a Directory
+      ansible.builtin.file:
+        path: /tmp/example_dir      # Directory path
+        state: directory            # Ensures a directory is created
+      register: dir_created         # Captures change status
+
+    # ✅ Display success message if the directory was created
+    - debug:
+        msg: "Directory created successfully"
+      when: dir_created.changed
+
+    # ✅ Check if the created directory exists
+    - name: Check if Directory Exists
+      ansible.builtin.stat:
+        path: /tmp/example_dir
+      register: dir_stat
+
+    # ✅ Inform user that directory exists
+    - debug:
+        msg: "Directory exists"
+      when: dir_stat.stat.exists
+
+    # ✅ Rename the directory using shell mv command
+    - name: Rename a Directory
+      command: mv /tmp/example_dir /tmp/renamed_dir
+      args:
+        removes: /tmp/example_dir   # Prevents error if source doesn't exist
+      register: dir_renamed
+
+    # ✅ Confirm renaming success
+    - debug:
+        msg: "Directory renamed successfully"
+      when: dir_renamed.changed
+
+    # ✅ Recursively set permissions to 0755 (rwxr-xr-x) for the renamed directory
+    - name: Provide Recursive Permissions to Directory Content
+      ansible.builtin.file:
+        path: /tmp/renamed_dir
+        recurse: yes                # Apply to all contents inside
+        mode: '0755'
+      register: dir_permissions
+
+    # ✅ Confirm permission change
+    - debug:
+        msg: "Recursive permissions set successfully"
+      when: dir_permissions.changed
+
+    # ✅ Delete the renamed directory and its contents
+    - name: Delete a Directory
+      ansible.builtin.file:
+        path: /tmp/renamed_dir
+        state: absent
+      register: dir_deleted
+
+    # ✅ Confirm directory deletion
+    - debug:
+        msg: "Directory deleted successfully"
+      when: dir_deleted.changed
+
