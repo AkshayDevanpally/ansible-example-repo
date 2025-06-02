@@ -1,0 +1,75 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to create and verify symbolic (soft) links to 
+# important system files for CPU and memory information. It also displays the 
+# contents of those system files through the symbolic links.
+
+# ✅ Key Concepts Covered:
+#   - Creating symbolic links using `ansible.builtin.file` with `state: link`
+#   - Verifying links with the `stat` module and checking `islnk`
+#   - Reading and printing the contents of system files via symbolic links
+#   - Registering outputs and using `debug` to display results
+# ===================================================================================
+
+- name: Create and Verify Soft Link for CPU/Memory Usage
+  hosts: webservers 
+  gather_facts: false
+
+  tasks:
+    # ✅ Create symbolic link to CPU info
+    - name: Create a symbolic link to /proc/cpuinfo
+      ansible.builtin.file:
+        src: /proc/cpuinfo              # Target file to link
+        dest: /tmp/cpuinfo_link         # Link path
+        state: link                     # Symbolic link
+
+    # ✅ Verify if the symbolic link was created
+    - name: Verify symbolic link creation
+      ansible.builtin.stat:
+        path: /tmp/cpuinfo_link
+      register: link_stats
+
+    # ✅ Show result of the symbolic link verification
+    - name: Print symbolic link verification result
+      ansible.builtin.debug:
+        msg: "Symbolic link exists: {{ link_stats.stat.islnk }}"
+
+    # ✅ Read content through the symbolic link
+    - name: Read content of the symbolic link (CPU info)
+      ansible.builtin.shell: cat /tmp/cpuinfo_link
+      register: cpuinfo_content
+
+    # ✅ Display CPU information from the link
+    - name: Print CPU info
+      ansible.builtin.debug:
+        msg: "{{ cpuinfo_content.stdout }}"
+
+    # ✅ Create symbolic link to Memory info
+    - name: Create a symbolic link to /proc/meminfo
+      ansible.builtin.file:
+        src: /proc/meminfo
+        dest: /tmp/meminfo_link
+        state: link
+
+    # ✅ Verify the symbolic link for memory info
+    - name: Verify symbolic link creation for memory info
+      ansible.builtin.stat:
+        path: /tmp/meminfo_link
+      register: meminfo_link_stats
+
+    # ✅ Show result of memory symbolic link verification
+    - name: Print symbolic link verification result for memory info
+      ansible.builtin.debug:
+        msg: "Symbolic link exists: {{ meminfo_link_stats.stat.islnk }}"
+
+    # ✅ Read content through the memory symbolic link
+    - name: Read content of the symbolic link (Memory info)
+      ansible.builtin.shell: cat /tmp/meminfo_link
+      register: meminfo_content
+
+    # ✅ Display Memory information from the link
+    - name: Print Memory info
+      ansible.builtin.debug:
+        msg: "{{ meminfo_content.stdout }}"
+
