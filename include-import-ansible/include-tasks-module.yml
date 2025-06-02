@@ -1,0 +1,9 @@
+- name: This will show the use of include task
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Play 1 - Task 1
+      debug:
+        msg: "Play 1 - Task 1"
+    - include_tasks: play2.yml
