@@ -1,0 +1,62 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to manage hard links in Ansible on a Linux system.
+# It covers creating a source file, generating a hard link to it, verifying its existence,
+# and then removing the hard link and confirming the deletion.
+
+# ✅ Key Concepts Covered:
+#   - Using the `ansible.builtin.file` module to create files and links
+#   - Creating hard links (`state: link`)
+#   - Verifying file/link existence using the `stat` module
+#   - Safely removing files/links
+# ===================================================================================
+
+- name: Demonstrate Hardlink with Ansible
+  hosts: webservers
+  become: yes
+  gather_facts: false
+
+  tasks:
+    # ✅ Create a new file to serve as the source for hard link
+    - name: Create a file
+      ansible.builtin.file:
+        path: /tmp/source_file.txt
+        state: touch         # Ensures the file exists
+        mode: '0644'         # Set appropriate file permissions
+
+    # ✅ Create a hard link pointing to the source file
+    - name: Create a hard link to the file
+      ansible.builtin.file:
+        src: /tmp/source_file.txt
+        dest: /tmp/hardlink_to_source
+        state: link          # Used for both soft and hard links
+
+    # ✅ Check if the hard link was successfully created
+    - name: Verify existence of the hard link
+      ansible.builtin.stat:
+        path: /tmp/hardlink_to_source
+      register: hardlink_info
+
+    # ✅ Print the result of the hard link check
+    - name: Print hard link existence
+      debug:
+        msg: "Hard link exists: {{ hardlink_info.stat.exists }}"
+
+    # ✅ Delete the hard link
+    - name: Remove the hard link
+      ansible.builtin.file:
+        path: /tmp/hardlink_to_source
+        state: absent        # Ensures the link is removed
+
+    # ✅ Verify that the hard link was removed
+    - name: Verify removal of the hard link
+      ansible.builtin.stat:
+        path: /tmp/hardlink_to_source
+      register: removed_link_info
+
+    # ✅ Print result of the removal check
+    - name: Print hard link removal result
+      debug:
+        msg: "Hard link removed: {{ not removed_link_info.stat.exists }}"
+
