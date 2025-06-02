@@ -1,0 +1,95 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This Ansible playbook demonstrates:
+#   1. How to use the `community.general.content` module to fetch file contents locally and from a URL.
+#   2. How to install Docker, run an Nginx container, and verify the setup using `community.docker`.
+#
+# ✅ Key Concepts Covered:
+#   - Reading system file content
+#   - Downloading files from remote URLs
+#   - Installing and managing Docker service
+#   - Running and verifying Docker containers
+#   - Validating web service availability using Ansible `uri` module
+# ===================================================================================
+
+- name: Use community.general collection on Ubuntu
+  hosts: webservers
+  become: yes  # Required for package installation and file operations
+
+  tasks:
+    # ✅ Task: Read OS info from /etc/os-release
+    - name: Display system information
+      community.general.content:
+        path: /etc/os-release             # Reads local file content
+      register: content_output            # Store output for parsing
+
+    # ✅ Task: Parse and print OS name and version
+    - name: Print OS name and version
+      debug:
+        msg: >
+          OS Name: {{ content_output.stdout.split('=')[1].strip() }}
+          OS Version: {{ content_output.stdout.split('=')[1].split()[0] }}
+        # Parsing values from the fetched content for display
+
+    # ✅ Task: Download Ansible getting_started file from GitHub
+    - name: Download content from URL
+      community.general.content:
+        src: https://raw.githubusercontent.com/ansible/ansible/devel/docsite/en_US/intro/getting_started.rst
+        dest: /tmp/getting_started.rst    # Save location on remote machine
+        mode: 0644                        # File permission
+
+# ===================================================================================
+
+- name: Install Docker and run Nginx container
+  hosts: webservers
+  become: yes  # Required for package and service management
+
+  tasks:
+    # ✅ Task: Install Docker engine
+    - name: Install Docker
+      community.general.package:
+        name: docker.io                   # Name of the Docker package
+        state: present                    # Ensure it's installed
+
+    # ✅ Task: Start and enable Docker service
+    - name: Ensure Docker service is started
+      service:
+        name: docker                      # Docker systemd service
+        state: started                    # Start the service
+        enabled: yes                      # Enable service at boot
+
+    # ✅ Task: Run an Nginx container on port 80
+    - name: Run Nginx container
+      community.docker.docker_container:
+        name: nginx-1.1                   # Unique container name
+        image: nginx                      # Docker image to use
+        ports:
+          - "80:80"                       # Expose container port to host
+        state: started                    # Ensure container is running
+
+    # ✅ Task: Get info about the Nginx container
+    - name: Verify Nginx container status
+      community.docker.docker_container_info:
+        name: nginx-1.1                   # Container name to fetch info
+      register: nginx_container_info      # Register output to check state
+
+    # ✅ Task: Ensure container is running
+    - name: Check if Nginx container is running
+      assert:
+        that:
+          - nginx_container_info.State == 'running'
+        # This will fail the playbook if container is not running
+
+    # ✅ Task: Check Nginx HTTP response
+    - name: Verify connection to Nginx
+      uri:
+        url: "http://localhost:80"        # Web check on the container
+        status_code: 200                  # Expect HTTP 200 OK
+      register: nginx_response            # Store response
+
+    # ✅ Task: Show the HTTP response
+    - name: Print Nginx response
+      debug:
+        var: nginx_response               # Output full response details
+
