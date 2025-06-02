@@ -1,0 +1,18 @@
+# ==========================================
+# 🎯 Purpose:
+# This playbook demonstrates how to use the `include` directive
+# to pull in an external file (tasks-1.yml) into the current play.
+# This is useful for organizing tasks modularly and reusing code.
+# ==========================================
+
+- name: This will show the use of include task
+  hosts: local           # Run this playbook on the localhost
+  gather_facts: false        # Skip gathering system facts for speed
+
+  tasks:
+    - name: Play 1 - Task 1
+      debug:
+        msg: "Play 1 - Task 1"    # Print a debug message for verification
+
+    - include: tasks-180.yml        # Include tasks from an external file
+                                  # This file should be in the same directory or a valid path
