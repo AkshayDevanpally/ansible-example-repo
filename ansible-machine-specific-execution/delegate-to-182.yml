@@ -1,0 +1,36 @@
+# ======================================================
+# 🎯 Purpose:
+# This playbook demonstrates how to use Ansible's `delegate_to` directive.
+# It creates a log file on the local or another remote host and then appends
+# a log entry from the context of a delegated host (different from the target host).
+# ======================================================
+# 🧠 Key Concept:
+# - `delegate_to` allows a task to run on a host *other than* the current target host.
+# - Useful for centralized logging, controlling firewalls, registering global state, etc.
+# ======================================================
+
+- name: Ansible Delegate_to examples
+  hosts: all                            # Run this play on all defined inventory hosts
+  remote_user: ec2-user                 # SSH as ec2-user to the remote hosts
+  become: 'yes'                         # Use sudo privileges
+  become_user: root                     # Specifically become the root user
+
+  vars:
+    tmplog: /tmp/connection.log         # Define a variable for the temporary log file path
+
+  tasks:
+
+    - name: create tmplog
+      shell: test ! -f {{ tmplog }} && touch {{ tmplog }}
+      # This uses the shell module to check if the log file exists
+      # If not, it creates the file. The `test ! -f` ensures it's only created if missing.
+      failed_when: false
+      # Prevent the task from failing if the file already exists (non-zero exit is ignored)
+
+    - name: delegate_to
+      shell: echo "delegate_to . {{ inventory_hostname }} $(hostname) ." >> {{ tmplog }}
+      # This appends a log entry showing which host is executing and who it's being delegated for
+      # `$(hostname)` is evaluated on the delegated host
+      delegate_to: ec2-13-59-156-142.us-east-2.compute.amazonaws.com
+      # This tells Ansible to run this task on a different host than the current inventory host
+
