@@ -5,3 +5,5 @@ localhost ansible_connection=local
 ec2-user@54.204.194.10
 ec2-user@52.87.157.189
 
+[webservers]
+ec2-user@54.87.55.218
