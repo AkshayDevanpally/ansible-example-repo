@@ -1,0 +1,28 @@
+# ======================================================
+# 🎯 Purpose:
+# This playbook demonstrates how to use `local_action` to 
+# create a file on the Ansible **control node (local machine)**,
+# and then transfer that file to a **remote host** using the `copy` module.
+# ======================================================
+
+- name: Local Action in Ansible
+  hosts: all                    # Run this play on all inventory hosts
+  remote_user: ec2-user         # Use ec2-user to connect to the remote host
+  become: 'yes'                 # Run tasks with elevated privileges (sudo)
+  become_user: root             # Specifically become the root user
+
+  tasks:
+    - name: This will create a local file /tmp/local_file.ini
+      local_action:             # This task runs on the control node (not remote host)
+        module: command         # Use the `command` module locally
+        argv:
+          - touch
+          - "/tmp/{{ ansible_hostname }}_local_file.ini"
+      # The file will be named with the current host's hostname for uniqueness
+
+    - name: Here we copy the local file to remote 
+      copy:
+        src: /tmp/{{ ansible_hostname }}_local_file.ini  # Path on the control node
+        dest: /var/tmp/                                  # Destination on the remote host
+        # This uses the `copy` module which pushes the local file to remote server
+
