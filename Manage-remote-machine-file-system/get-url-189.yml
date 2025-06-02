@@ -1,0 +1,52 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to use Ansible's `get_url` module to download files
+# from remote URLs onto managed hosts. It includes checksum validation, setting permissions,
+# and downloading multiple files using loops.
+
+# ✅ Key Concepts Covered:
+#   - Using `get_url` to download files from the internet
+#   - Setting file permissions via `mode`
+#   - Validating file integrity using checksums (e.g., SHA256)
+#   - Downloading multiple files using the `loop` directive
+# ===================================================================================
+
+- name: Download a file using get_url
+  hosts: webservers
+  become: yes
+  gather_facts: false
+
+  tasks:
+    # ✅ Download the jq utility binary (version 1.6)
+    - name: Download jq utility
+      get_url:
+        url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        dest: /usr/local/bin/jq
+        mode: '0755'  # Make it executable
+
+    # ✅ Download jq version 1.7.1 with SHA256 checksum validation
+    - name: Download jq utility with checksum validation
+      get_url:
+        url: https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux64
+        dest: /usr/local/bin/jq-1.7
+        checksum: 'sha256:5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5'
+        mode: '0755'  # Ensure it's executable
+
+    # ✅ Download a Maven POM file to /etc
+    - name: Download POM file
+      get_url:
+        url: https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.13/slf4j-api-2.0.13.pom
+        dest: /etc/slf4j.pom
+        mode: '0644'  # Readable by all users
+
+    # ✅ Download multiple files using a loop
+    - name: Download files
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: '0644'  # Readable file permissions
+      loop:
+        - { url: 'https://maven.google.com/androidx/appcompat/appcompat/1.6.1/appcompat-1.6.1.aar', dest: '/tmp/andriod.aar' }
+        - { url: 'https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.8.2/retrofit-2.8.2.jar', dest: '/tmp/
+
