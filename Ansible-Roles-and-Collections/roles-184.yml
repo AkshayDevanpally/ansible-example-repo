@@ -1,0 +1,67 @@
+# ======================================================
+# 🎯 Purpose:
+# This playbook installs and configures **Nginx** and **MySQL** on hosts in the `webservers` group.
+# It uses community roles (`geerlingguy.nginx` and `geerlingguy.mysql`) installed via `requirements.yml`.
+# After installation, it verifies that both services are installed and running properly.
+# ======================================================
+# 🧠 Key Concepts:
+# - **Roles**: Abstract reusable configurations for common services (here for Nginx & MySQL).
+# - **Command Module**: To verify installation versions.
+# - **Systemd Module**: To confirm services are running.
+# - **Debug Module**: For informative output during playbook execution.
+# ======================================================
+
+---
+- name: Install, configure, and verify Nginx and MySQL
+  hosts: webservers          # Target all hosts in the webservers group
+  become: yes                # Run tasks with sudo privileges
+
+  roles:
+    - geerlingguy.nginx      # Role to install and configure Nginx
+    - geerlingguy.mysql      # Role to install and configure MySQL
+
+  tasks:
+    - name: Verify Nginx is installed
+      command: nginx -v                    # Check Nginx version (prints to stderr)
+      register: nginx_version              # Save command output to a variable
+      ignore_errors: yes                   # Continue even if Nginx is not installed
+
+    - name: Check Nginx installation
+      debug:
+        msg: "Nginx version: {{ nginx_version.stderr }}"
+      when: nginx_version.rc == 0          # Only show version if command was successful
+
+    - name: Verify Nginx service is running
+      systemd:
+        name: nginx                        # Target the nginx systemd service
+        state: started                     # Ensure it's running
+      register: nginx_service              # Capture the result
+      ignore_errors: yes                   # Don't fail the play if it isn't
+
+    - name: Check Nginx service status
+      debug:
+        msg: "Nginx service is running"
+      when: nginx_service.state == 'started'  # Confirm that the service is indeed running
+
+    - name: Verify MySQL is installed
+      command: mysql --version             # Run MySQL version check
+      register: mysql_version              # Register the result
+      ignore_errors: yes                   # Ignore failure if not installed
+
+    - name: Check MySQL installation
+      debug:
+        msg: "MySQL version: {{ mysql_version.stdout }}"
+      when: mysql_version.rc == 0          # Show version if installation succeeded
+
+    - name: Verify MySQL service is running
+      systemd:
+        name: mysql                        # Target the mysql systemd service
+        state: started                     # Ensure it’s started
+      register: mysql_service              # Save the service state
+      ignore_errors: yes                   # Do not fail play if service isn’t running
+
+    - name: Check MySQL service status
+      debug:
+        msg: "MySQL service is running"
+      when: mysql_service.state == 'started'  # Confirm MySQL is running
+
