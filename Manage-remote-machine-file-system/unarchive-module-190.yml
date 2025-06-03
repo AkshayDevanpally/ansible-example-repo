@@ -1,0 +1,46 @@
+---
+# ===================================================================================
+# 📘 Purpose:
+# This playbook automates the process of deploying a static web application by:
+#   - Ensuring the target directory exists
+#   - Downloading a tar.gz archive from GitHub
+#   - Extracting its contents to the web root
+#   - Cleaning up the archive post-deployment
+
+# ✅ Key Concepts Covered:
+#   - Directory management using `file` module
+#   - File downloading with `get_url`
+#   - Archive extraction using `unarchive`
+#   - File cleanup and housekeeping
+# ===================================================================================
+
+- name: Deploy web application
+  hosts: webservers
+  become: yes  # Required to write to /var/www/html
+
+  tasks:
+    # ✅ Ensure that /var/www/html directory exists (web root)
+    - name: Ensure the destination directory exists
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+
+    # ✅ Download the web application archive from GitHub
+    - name: Download the web application archive
+      ansible.builtin.get_url:
+        url: https://github.com/brettz9/webappfind-demos-samples/archive/refs/tags/v0.7.0.tar.gz
+        dest: /tmp/v0.7.0.tar.gz
+
+    # ✅ Extract the archive into the web root
+    - name: Extract the web application archive
+      ansible.builtin.unarchive:
+        src: /tmp/v0.7.0.tar.gz
+        dest: /var/www/html
+        remote_src: yes  # The archive is already on the remote server
+
+    # ✅ Remove the archive to free up disk space
+    - name: Clean up the archive file from the remote server
+      ansible.builtin.file:
+        path: /tmp/v0.7.0.tar.gz
+        state: absent
+
