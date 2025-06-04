@@ -12,7 +12,7 @@
 # ============================================================================================
 
 - name: Install Docker
-  hosts: all
+  hosts: all  #using aws specified hosts
   become: yes  # Ensure tasks are run with root privileges
 
   tasks:
