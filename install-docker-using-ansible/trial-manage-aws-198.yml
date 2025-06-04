@@ -1,0 +1,110 @@
+# ============================================================================================
+# 📘 Purpose:
+# Manage Docker containers (Nginx & Redis) on Amazon Linux via Ansible with Python dependencies pre-installed
+# ============================================================================================
+
+- name: Manage Docker Containers on Amazon Linux
+  hosts: all
+  become: yes
+
+  pre_tasks:
+    # Ensure Python and pip are installed
+    - name: Install Python3 and pip
+      package:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    # Install required Python libraries for Docker modules
+    - name: Install required Python libraries via pip3
+      pip:
+        name:
+          - docker
+          - requests
+        executable: pip3
+
+  tasks:
+    # Start Docker service
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Pull Docker images
+    - name: Pull Nginx image
+      community.docker.docker_image:
+        name: nginx
+        source: pull
+
+    - name: Pull Redis image
+      community.docker.docker_image:
+        name: redis
+        source: pull
+
+    # Create and start containers
+    - name: Start Nginx container
+      community.docker.docker_container:
+        name: nginx_container
+        image: nginx
+        state: started
+        ports:
+          - "80:80"
+
+    - name: Start Redis container
+      community.docker.docker_container:
+        name: redis_container
+        image: redis
+        state: started
+        ports:
+          - "6379:6379"
+
+    # Check status of containers
+    - name: Check Nginx container status
+      community.docker.docker_container_info:
+        name: nginx_container
+      register: nginx_info
+
+    - name: Debug Nginx status
+      debug:
+        msg: "Nginx status: {{ nginx_info.container.State.Status }}"
+
+    - name: Check Redis container status
+      community.docker.docker_container_info:
+        name: redis_container
+      register: redis_info
+
+    - name: Debug Redis status
+      debug:
+        msg: "Redis status: {{ redis_info.container.State.Status }}"
+
+    # List running containers before cleanup
+    - name: List containers before cleanup
+      command: docker ps --format "{{'{{'}}.Names{{'}}'}}"
+      register: containers_before
+
+    - name: Show containers before cleanup
+      debug:
+        msg: "Containers before cleanup: {{ containers_before.stdout_lines }}"
+
+    # Remove containers
+    - name: Remove Nginx container
+      community.docker.docker_container:
+        name: nginx_container
+        state: absent
+
+    - name: Remove Redis container
+      community.docker.docker_container:
+        name: redis_container
+        state: absent
+
+    # List containers after cleanup
+    - name: List containers after cleanup
+      command: docker ps --format "{{'{{'}}.Names{{'}}'}}"
+      register: containers_after
+
+    - name: Show containers after cleanup
+      debug:
+        msg: "Containers after cleanup: {{ containers_after.stdout_lines }}"
+
