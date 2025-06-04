@@ -1,0 +1,31 @@
+# ===================================================================================
+# 📘 Purpose:
+# This playbook demonstrates how to use Ansible's `uri` module to send a GET request
+# to a REST API endpoint (JSONPlaceholder) and handle the JSON response.
+
+# 🧠 Key Concepts:
+# - Making HTTP API requests using Ansible's `uri` module.
+# - Capturing and processing JSON responses.
+# - Using filters (`length`) and `register` variables.
+# ===================================================================================
+
+- name: Submit GET request to a REST API endpoint
+  hosts: local
+  gather_facts: no  # Skip gathering facts for faster execution
+
+  tasks:
+    - name: Send GET request to JSONPlaceholder API
+      uri:
+        url: https://jsonplaceholder.typicode.com/posts  # Public dummy API
+        method: GET                                      # HTTP GET method
+        return_content: yes                              # Return full response body
+      register: response                                  # Store response in a variable
+
+    - name: Display response content
+      debug:
+        var: response.json     # Output the entire JSON data from the API response
+
+    - name: Process response
+      debug:
+        msg: "Total posts received: {{ response.json | length }}"  # Count and display number of posts
+
