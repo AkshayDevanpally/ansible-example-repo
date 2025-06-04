@@ -1,0 +1,69 @@
+# ============================================================================================
+# 📘 Purpose:
+# This playbook demonstrates token-based authentication and API interaction using Ansible.
+# It logs in to the Reqres API to obtain a token, then uses that token to create a new user.
+
+# 🧠 Key Concepts:
+# - Token-based authentication using Ansible's `uri` module.
+# - HTTP POST requests with JSON payloads and headers.
+# - Registering and using dynamic variables (`set_fact`).
+# - Using authenticated API calls (Bearer token).
+# ============================================================================================
+
+- name: Interact with Reqres API using token-based authentication
+  hosts: local
+  gather_facts: no  # No need to gather facts for this API-focused playbook
+
+  vars:
+    login_url: "https://reqres.in/api/login"       # Endpoint to get auth token
+    post_url: "https://reqres.in/api/users"        # Endpoint to create a user
+    username: "eve.holt@reqres.in"                 # Demo username provided by Reqres
+    password: "cityslicka"                         # Demo password provided by Reqres
+    new_user:                                      # JSON body for creating a new user
+      name: "morpheus"
+      job: "leader"
+
+  tasks:
+    - name: Login to Reqres API to obtain token
+      uri:
+        url: "{{ login_url }}"
+        method: POST
+        body:
+          email: "{{ username }}"
+          password: "{{ password }}"
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        return_content: yes      # Return the full response content
+        status_code: 200         # Expect HTTP 200 response on success
+      register: auth_response    # Save response to extract token later
+
+    - name: Display Login response content
+      debug:
+        var: auth_response.json  # Shows the full JSON returned (including token)
+
+    - name: Extract token from login response
+      set_fact:
+        auth_token: "{{ auth_response.json.token }}"  # Save token as a fact for later use
+
+    - name: Ensure token was obtained
+      debug:
+        var: auth_token           # Print the token value for verification
+
+    - name: Use token to create a new user
+      uri:
+        url: "{{ post_url }}"
+        method: POST
+        body: "{{ new_user }}"        # Send new user info
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ auth_token }}"  # Use the obtained token
+        return_content: yes
+        status_code: 201
+      register: create_user_response  # Capture the response from the user creation
+
+    - name: Display create user response content
+      debug:
+        var: create_user_response.content  # Show result of the POST operation
+
