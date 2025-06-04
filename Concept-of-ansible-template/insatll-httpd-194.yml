@@ -1,0 +1,48 @@
+# ===================================================================================
+# 📘 Purpose:
+# This playbook installs and configures an Apache Web Server on all target hosts.
+# It also updates the default index page using a Jinja2 template and uses handlers
+# to ensure the service is running or restarted when necessary.
+
+# 🧠 Key Concepts:
+# - Installing a package using `yum` module.
+# - Using Jinja2 templates with the `template` module.
+# - Managing service states with `handlers`.
+# - Using variables (`custom_var`) for dynamic content.
+# ===================================================================================
+
+- name: Installing WebServer
+  hosts: all
+  remote_user: ec2-user
+  become: 'yes'
+  become_user: root
+
+  vars:
+    custom_var: 123abc  # Example variable (could be used in the Jinja2 template)
+
+  tasks:
+    - name: Ensure Apache is at the Latest Version
+      yum:
+        name: httpd          # Install the Apache HTTP Server
+        state: present       # Ensure it is present on the system
+      notify:
+        - Ensure Apache is Running  # Call handler to start Apache if changed
+
+    - name: Updating Index HTML file
+      template:
+        src: index.html.j2         # Source template file (on controller)
+        dest: /usr/share/httpd/noindex/index.html  # Destination on remote host
+      notify:
+        - Ensure Apache restart    # Restart Apache to reflect new content
+
+  handlers:
+    - name: Ensure Apache is Running
+      service:
+        name: httpd
+        state: started             # Start Apache if not already running
+
+    - name: Ensure Apache restart
+      service:
+        name: httpd
+        state: restarted           # Restart Apache when content is updated
+
