@@ -1,0 +1,78 @@
+# ============================================================================================
+# 📘 Purpose:
+# This playbook installs Docker and Docker Compose on target Debian-based systems (like Ubuntu),
+# sets up required dependencies, adds the official Docker repository, installs the packages, 
+# and ensures Docker is running.
+
+# 🧠 Key Concepts:
+# - APT repository and GPG key setup for third-party software
+# - Installing multiple dependent packages via Ansible
+# - Managing system services (start/enable Docker)
+# - Validating installation through service status check
+# ============================================================================================
+
+- name: Install Docker
+  hosts: all
+  become: yes  # Ensure tasks are run with root privileges
+
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      # Ensures that the local package list is up-to-date before installing anything.
+
+    - name: Install packages required for apt to use HTTPS
+      apt:
+        name: "{{ item }}"
+        state: present
+        cache_valid_time: 3600
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+      # These are prerequisites for secure communication with external repositories like Docker.
+
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        state: present
+      # Adds Docker’s GPG key so apt can verify package authenticity from Docker's repo.
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+      # Adds the official Docker repo to the system’s package sources.
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name: 
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose
+        state: present
+      # Installs core Docker engine, CLI, container runtime, and Docker Compose tool.
+
+    - name: Ensure Docker service is started and enabled at boot
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      # Makes sure Docker service is running now and will auto-start on reboot.
+
+    - name: Check Docker service status
+      command: systemctl status docker --no-pager
+      register: docker_status
+      changed_when: false
+      # Executes a status check on Docker service; doesn't count as a change.
+
+    - name: Print Docker service status
+      debug:
+        msg: "Docker service status: {{ docker_status.stdout }}"
+      when: docker_status.rc == 0
+      # Shows Docker status only if the command succeeded.
+
