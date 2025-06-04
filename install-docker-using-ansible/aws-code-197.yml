@@ -1,0 +1,71 @@
+# ============================================================================================
+# 📘 Purpose:
+# Install Docker and Docker Compose on Amazon Linux-based systems using YUM,
+# add required dependencies, install Docker from the default Amazon repo, 
+# and verify Docker is running.
+
+# 🧠 Key Concepts:
+# - YUM-based installation (Amazon Linux)
+# - Service management with systemd
+# - Docker CLI and service verification
+# ============================================================================================
+
+- name: Install Docker on Amazon Linux
+  hosts: all
+  become: yes  # Required for package installs and service control
+
+  tasks:
+
+    - name: Update yum packages
+      yum:
+        name: '*'
+        state: latest
+      # Updates all packages on the system to their latest versions
+
+    - name: Install required system utilities
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+      # These packages are prerequisites for Docker and storage management
+
+    - name: Install Docker from Amazon Linux extras (Amazon Linux 2 only)
+      shell: amazon-linux-extras enable docker && yum clean metadata && yum install -y docker
+      args:
+        creates: /usr/bin/docker
+      # Enables Docker via amazon-linux-extras and installs it
+      # The 'creates' prevents re-running if docker already exists
+
+    - name: Install Docker Compose manually (latest stable version)
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.24.7/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      # Downloads the latest Docker Compose binary and makes it executable
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      # Ensures Docker is running and set to start on boot
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+      # Adds ec2-user to the docker group for non-root Docker usage
+
+    - name: Check Docker service status
+      command: systemctl status docker --no-pager
+      register: docker_status
+      changed_when: false
+
+    - name: Print Docker service status
+      debug:
+        msg: "Docker service status: {{ docker_status.stdout }}"
+      when: docker_status.rc == 0
+
