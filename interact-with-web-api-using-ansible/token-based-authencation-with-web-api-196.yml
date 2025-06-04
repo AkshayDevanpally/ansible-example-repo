@@ -15,8 +15,8 @@
   gather_facts: no  # No need to gather facts for this API-focused playbook
 
   vars:
-    login_url: "https://reqres.in/api/login"       # Endpoint to get auth token
-    post_url: "https://reqres.in/api/users"        # Endpoint to create a user
+    login_url: "http://reqres.in/api/login"       # Endpoint to get auth token
+    post_url: "http://reqres.in/api/users"        # Endpoint to create a user
     username: "eve.holt@reqres.in"                 # Demo username provided by Reqres
     password: "cityslicka"                         # Demo password provided by Reqres
     new_user:                                      # JSON body for creating a new user
