@@ -16,7 +16,7 @@
   tasks:
     - name: Send GET request to JSONPlaceholder API
       uri:
-        url: https://jsonplaceholder.typicode.com/posts  # Public dummy API
+        url: http://jsonplaceholder.typicode.com/posts  # Public dummy API
         method: GET                                      # HTTP GET method
         return_content: yes                              # Return full response body
       register: response                                  # Store response in a variable
