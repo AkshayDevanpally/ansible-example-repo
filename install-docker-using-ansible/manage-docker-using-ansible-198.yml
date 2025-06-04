@@ -1,0 +1,116 @@
+# ============================================================================================
+# 📘 Purpose:
+# Manage Docker containers on Amazon Linux-based systems. This playbook pulls Nginx and Redis
+# images, runs the containers, verifies their status, and finally removes them. It assumes
+# Docker is already installed and running.
+
+# 🧠 Key Concepts:
+# - Docker image management using `community.docker` modules
+# - Container lifecycle management (create, start, inspect, delete)
+# - Use of variables and command output for status reporting
+# - Structured debug and verification steps
+# ============================================================================================
+
+- name: Manage Docker Containers
+  hosts: all              # The group of target machines in your inventory
+  become: yes                    # Ensures tasks are run with root privileges
+
+  tasks:
+
+    # ========================================================================================
+    # 🔧 Ensure Docker Service Is Running and Enabled
+    # ========================================================================================
+    - name: Start Docker service
+      service:
+        name: docker             # Systemd-managed service name
+        state: started           # Ensures the service is running
+        enabled: yes             # Ensures the service starts on system boot
+
+    # ========================================================================================
+    # 📦 Pull Required Docker Images (Nginx and Redis)
+    # ========================================================================================
+    - name: Pull Nginx image
+      community.docker.docker_image:
+        name: nginx              # Docker Hub image name
+        source: pull             # Ensures the latest image is pulled from registry
+
+    - name: Pull Redis image
+      community.docker.docker_image:
+        name: redis
+        source: pull
+
+    # ========================================================================================
+    # 🚀 Create and Start Containers
+    # ========================================================================================
+    - name: Create and start Nginx container
+      community.docker.docker_container:
+        name: nginx_container    # Name of the running container
+        image: nginx             # Docker image to use
+        state: started           # Ensure it's running
+        ports:
+          - "80:80"              # Map container's port 80 to host port 80
+
+    - name: Create and start Redis container
+      community.docker.docker_container:
+        name: redis_container
+        image: redis
+        state: started
+        ports:
+          - "6379:6379"          # Redis default port mapping
+
+    # ========================================================================================
+    # 🔍 Verify Container Status (Nginx and Redis)
+    # ========================================================================================
+    - name: Ensure Nginx container is running
+      community.docker.docker_container_info:
+        name: nginx_container
+      register: nginx_info       # Save container info to variable
+
+    - name: Debug Nginx container status
+      debug:
+        msg: "Nginx container status: {{ nginx_info.container.State.Status }}"
+
+    - name: Ensure Redis container is running
+      community.docker.docker_container_info:
+        name: redis_container
+      register: redis_info
+
+    - name: Debug Redis container status
+      debug:
+        msg: "Redis container status: {{ redis_info.container.State.Status }}"
+
+    # ========================================================================================
+    # 👁️ Show Running Containers Before Termination
+    # ========================================================================================
+    - name: Show all running containers before termination
+      command: docker ps --format "{{'{{'}}.Names{{'}}'}}"  # List container names only
+      register: all_containers_before
+
+    - name: Debug all running containers before termination
+      debug:
+        msg: "All running containers before termination: {{ all_containers_before.stdout_lines }}"
+
+    # ========================================================================================
+    # ❌ Terminate and Clean Up Containers
+    # ========================================================================================
+    - name: Terminate Nginx container
+      community.docker.docker_container:
+        name: nginx_container
+        state: absent            # Removes the container
+
+    - name: Terminate Redis container
+      community.docker.docker_container:
+        name: redis_container
+        state: absent
+
+    # ========================================================================================
+    # 📤 Confirm Container Cleanup
+    # ========================================================================================
+    - name: Show all running containers after termination
+      command: docker ps --format "{{'{{'}}.Names{{'}}'}}"
+      register: all_containers_after
+
+    - name: Debug all running containers after termination
+      debug:
+        msg: "All running containers after termination: {{ all_containers_after.stdout_lines }}"
+
