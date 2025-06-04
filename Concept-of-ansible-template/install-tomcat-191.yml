@@ -1,0 +1,72 @@
+# ===================================================================================
+# 📘 Purpose:
+# This playbook automates the installation and configuration of Apache Tomcat on
+# Amazon Linux 2 EC2 instances. It installs Java, configures Java alternatives,
+# downloads Tomcat, updates its configuration, and starts the Tomcat server.
+
+# ✅ Key Concepts Covered:
+#   - Installing system packages and Java via `yum`
+#   - Managing Java alternatives
+#   - Downloading and extracting archives using `get_url` and `unarchive`
+#   - Using Jinja2 templates to customize configuration files
+#   - Starting a process using `shell`
+# ===================================================================================
+
+- name: Install and Configure Tomcat using Ansible
+  hosts: all
+  remote_user: ec2-user
+  become: yes
+  become_user: root
+
+  vars:
+    java_version: java-1.8.0-openjdk
+    alternative_path: java-1.8.0-openjdk-1.8.0.302.b08-0.amzn2.0.1.x86_64
+    tomcat_version: 9.0.56
+    tomcat_port: 8090
+
+  tasks:
+    # ✅ Update all packages to the latest version
+    - name: Update All Packages on Machine
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+
+    # ✅ Install the specified Java version
+    - name: Install Java on Machine
+      ansible.builtin.yum:
+        name: "{{ java_version }}"
+        state: present
+
+    # ✅ Set the installed Java version as the system default using alternatives
+    - name: Set Java 8 Alternative on Machine
+      ansible.builtin.alternatives:
+        name: java
+        link: /bin/java
+        path: /usr/lib/jvm/{{ alternative_path }}/jre/bin/java
+
+    # ✅ Download the Tomcat tar.gz archive to /usr/local
+    - name: Download Tomcat Tar file
+      ansible.builtin.get_url:
+        url: "https://dlcdn.apache.org/tomcat/tomcat-9/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+        dest: /usr/local
+
+    # ✅ Extract the downloaded Tomcat archive
+    - name: Extract Tomcat file
+      ansible.builtin.unarchive:
+        src: "/usr/local/apache-tomcat-{{ tomcat_version }}.tar.gz"
+        dest: /usr/local
+        remote_src: yes
+
+    # ✅ Rename extracted folder to a standard name for easier reference
+    - name: Rename Tomcat dir
+      ansible.builtin.command: mv /usr/local/apache-tomcat-{{ tomcat_version }} /usr/local/tomcat
+
+    # ✅ Replace default server.xml with customized version using a Jinja2 template
+    - name: Replacing default port with required port
+      ansible.builtin.template:
+        src: server.xml.j2
+        dest: /usr/local/tomcat/conf/server.xml
+
+    # ✅ Start Tomcat using the startup.sh script in background (non-blocking)
+    - name: Starting Tomcat process
+      ansible.builtin.shell: nohup /usr/local/tomcat/bin/startup.sh &
